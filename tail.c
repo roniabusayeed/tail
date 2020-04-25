@@ -120,7 +120,12 @@ int main(int argc,const char* argv[])
         printf("%s", list[cursor++]);
     }
 
-
+    // Free memory
+    for (int i = 0; i < size; i++)
+    {
+        free(list[i]);
+    }
+    free(list);
 
     // Close file
     fclose(inptr);
