@@ -1,3 +1,11 @@
+/**
+ * tail: Prints the last n lines of its input. By default
+ * n is 10 but it can be changed by an optional argument.
+
+ * Author: Abu Sayeed Roni.
+ */
+
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
