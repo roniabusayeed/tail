@@ -107,10 +107,13 @@ int main(int argc,const char* argv[])
         list[size++] = line;
     }
 
-    // Print last n_lines lines
+    // Print last n_lines lines.
+    // Get index of the first line to print.
     int cursor = 0;
-    if (size - n_lines > 0)
+    if (n_lines < size)
+    {
         cursor = size - n_lines;
+    }
 
     while (cursor < size)
     {
