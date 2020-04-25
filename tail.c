@@ -3,8 +3,24 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 
+/**
+ * Reads an entire line from stream returning the address of
+ * the buffer containing the text. The buffer is null-terminated
+ * and includes the newline character if one was found.
+ * Returns NULL on failure to read a line (including end of file
+ * condition). Sets *line_number to line number of the line in stream.
+ * The buffer is heap allocated and the caller function is should
+ * to free the memory to avoid memory leak.
+ */
+char* readline(FILE* stream, int* line_number);
+
+
+/**
+ * Checks if all the characters of a string are digit.
+ */
 bool str_isdigit(const char* str)
 {
     for (int i = 0, n = strlen(str); i < n; i++)
@@ -14,6 +30,7 @@ bool str_isdigit(const char* str)
     }
     return true;
 }
+
 
 int main(int argc,const char* argv[])
 {
@@ -56,7 +73,7 @@ int main(int argc,const char* argv[])
             return 1;
         }
 
-        // Read filename
+        // Remember filename
         infile = argv[2];
     }
 
@@ -68,8 +85,93 @@ int main(int argc,const char* argv[])
         return 1;
     }
 
-    // Read file...
+    // Load lines in a dynamic array
+    const size_t init_capacity = 10;
+    const float increment_factor = 1.25f;
+    
+    char** list = malloc(sizeof(char*) * init_capacity);
+    
+    size_t capacity = init_capacity;
+    size_t size = 0;
+
+    char* line;
+    int line_number;    // Throwaway variable.
+    while ((line = readline(inptr, &line_number)) != NULL)
+    {
+        if (size == capacity)
+        {
+            capacity = ceil(capacity * increment_factor);
+            list = realloc(list, sizeof(char*) * capacity);
+        }
+
+        list[size++] = line;
+    }
+
+    // Print last n_lines lines
+    int cursor = 0;
+    if (size - n_lines > 0)
+        cursor = size - n_lines;
+
+    while (cursor < size)
+    {
+        printf("%s", list[cursor++]);
+    }
+
+
 
     // Close file
     fclose(inptr);
+}
+
+
+char* readline(FILE* stream, int* line_number)
+{
+    static int s_line_number = 1;
+
+    const size_t init_capacity = 10;
+    char* line = malloc(sizeof(char) * init_capacity);
+    // Guard against insufficient memory.
+    if (!line)
+    {
+        printf("Insufficient memory\n");
+        *line_number = -1;
+        return NULL;
+    }
+    const float increment_factor = 1.25f;   
+    size_t capacity = init_capacity;
+    size_t size = 0;
+    int c;
+    while ((c = fgetc(stream)) != EOF)
+    {
+        // Increase buffer capacity if size exceeds it.
+        if (size == capacity)
+        {
+            capacity = ceil(capacity * increment_factor);
+            line = realloc(line, capacity);
+            // Guard against insufficient memory.
+            if (!line)
+            {
+                printf("Insufficient memory\n");
+                *line_number = -1;
+                return NULL;
+            }
+        }
+
+        line[size++] = c;
+        if (c == '\n')
+            break;
+    }
+
+    // If characters are in buffer return buffer.
+    if (size)
+    {
+        line[size] = 0;
+        *line_number = s_line_number++;
+        return line;
+    }
+    
+    // Characters are not in buffer. So, free memory and return NULL.   
+    free(line);
+    *line_number = -1;
+    return NULL;    
 }
